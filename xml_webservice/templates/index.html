@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Timer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #5c67f2;
+        }
+        .timer-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .timer-item {
+            text-align: center;
+            flex: 1;
+        }
+        .timer-label {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        #dailyLabel {
+            background-color: #d0e0ff;
+        }
+        #weeklyLabel {
+            background-color: #e0ffd0;
+        }
+        .time-display {
+            font-size: 20px;
+            color: #5c67f2;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #5c67f2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #4a54e1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Study Timer</h1>
+        <div class="timer-box">
+            <div class="timer-item">
+                <div id="dailyLabel" class="timer-label">Daily Study Time</div>
+                <div class="time-display" id="dailyTime">0小时0分钟</div>
+            </div>
+            <div class="timer-item">
+                <div id="weeklyLabel" class="timer-label">Weekly Study Time</div>
+                <div class="time-display" id="weeklyTime">0小时0分钟</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const updateInterval = 60000; // 更新频率为一分钟一次
+            let timerInterval;
+
+            function fetchStudyTime() {
+                console.log("Fetching study time...");
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    console.log("1111111");
+                    const userPosition = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+                    fetch('/webservice/timer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(userPosition)
+                    }).then(response => response.json())
+                    .then(data => {
+                        
+                        updateDisplay(data.dailyTime, data.weeklyTime);
+                    }).catch(error => {
+                        console.error('Error:', error);
+                    });
+                }, function(error) {
+                    console.error("Error Code = " + error.code + " - " + error.message);
+                });
+                console.log("Study time fetched.");
+            }
+
+            function updateDisplay(dailyTime, weeklyTime) {
+                // const dailyHours = Math.floor(dailyTime / 60);
+                const dailyHours = 2;
+                const dailyMinutes = dailyTime % 60;
+                const weeklyHours = Math.floor(weeklyTime / 60);
+                const weeklyMinutes = weeklyTime % 60;
+
+                document.getElementById("dailyTime").textContent = `${dailyHours}小时${dailyMinutes}分钟`;
+                document.getElementById("weeklyTime").textContent = `${weeklyHours}小时${weeklyMinutes}分钟`;
+            }
+
+            function startFetching() {
+                fetchStudyTime(); // 立即执行一次获取
+                timerInterval = setInterval(fetchStudyTime, updateInterval);
+            }
+
+            startFetching();
+        });
+    </script>
+    <!-- <script src="/static/js/server.js" crossorigin></script> -->
+</body>
+</html>
